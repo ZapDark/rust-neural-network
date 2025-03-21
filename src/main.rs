@@ -1,130 +1,124 @@
+extern crate rand;
+
 use macroquad::prelude::*;
+use rand::Rng;
 
-fn window_conf() -> Conf {
-    Conf {
-        window_title: "Perceptron Visualization".to_owned(),
-        window_width: 800,
-        window_height: 600,
-        window_resizable: false,
-        ..Default::default()
-    }
-}
-
-// Mock neural network data (replace with your actual implementation)
 struct Perceptron {
-    weights: [f32; 3],
-    bias: f32,
-    position: Vec2,
+    weights: [f32; 2],
+    learning_rate: f32,
 }
 
 impl Perceptron {
     fn new() -> Self {
+        let mut rng = rand::thread_rng();
         Perceptron {
-            weights: [0.5, -0.7, 0.3], // Example weights
-            bias: 0.2,
-            position: vec2(0.0, 0.0),
+            weights: [rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0)],
+            learning_rate: 0.05,
         }
     }
 
-    // Add your activation logic here
-    fn activate(&self, inputs: &[f32]) -> f32 {
-        // Simple step function for demonstration
-        let sum = inputs
-            .iter()
-            .zip(self.weights.iter())
-            .map(|(i, w)| i * w)
-            .sum::<f32>()
-            + self.bias;
+    fn predict(&self, x: f32) -> f32 {
+        self.weights[0] * x + self.weights[1]
+    }
 
-        if sum >= 0.0 { 1.0 } else { 0.0 }
+    fn train(&mut self, dataset: &[(f32, f32)]) -> f32 {
+        let mut gradient_w0 = 0.0;
+        let mut gradient_w1 = 0.0;
+        let mut total_error = 0.0;
+
+        for &(x, y) in dataset {
+            let prediction = self.predict(x);
+            let error = prediction - y;
+
+            gradient_w0 += error;
+            gradient_w1 += error * x;
+            total_error += error.powi(2);
+        }
+
+        let n = dataset.len() as f32;
+        self.weights[0] -= self.learning_rate * gradient_w1 / n;
+        self.weights[1] -= self.learning_rate * gradient_w0 / n;
+
+        total_error
     }
 }
 
-#[macroquad::main(window_conf)]
+fn generate_dataset() -> Vec<(f32, f32)> {
+    let mut rng = rand::thread_rng();
+    let m = 0.7;
+    let b = 0.2;
+    let mut points = Vec::new();
+
+    for _ in 0..100 {
+        let x = rng.gen_range(-1.0..1.0);
+        let y = m * x + b + rng.gen_range(-0.1..0.1);
+        points.push((x, y));
+    }
+
+    points
+}
+
+fn to_screen_coords(x: f32, y: f32) -> (f32, f32) {
+    let screen_width = screen_width();
+    let screen_height = screen_height();
+    (
+        (x + 1.0) / 2.0 * screen_width,
+        screen_height - ((y + 1.0) / 2.0 * screen_height),
+    )
+}
+
+#[macroquad::main("Linear Regression with Perceptron")]
 async fn main() {
-    let perceptron = Perceptron::new();
+    let dataset = generate_dataset();
+    let mut perceptron = Perceptron::new();
+    let mut training = true;
+    let true_m = 0.7;
+    let true_b = 0.2;
 
     loop {
-        clear_background(BLACK);
+        clear_background(WHITE);
 
-        // Calculate dynamic positions based on screen size
-        let screen_center = vec2(screen_width() / 2.0, screen_height() / 2.0);
-
-        // Input neurons positions (left third of the screen)
-        let input_positions = [
-            vec2(screen_width() * 0.25, screen_center.y - 100.0),
-            vec2(screen_width() * 0.25, screen_center.y),
-            vec2(screen_width() * 0.25, screen_center.y + 100.0),
-        ];
-
-        // Output neuron position (right third of the screen)
-        let output_position = vec2(screen_width() * 0.75, screen_center.y);
-
-        // Bias position (bottom center)
-        let bias_position = vec2(screen_center.x, screen_height() - 100.0);
-
-        // Draw connections
-        for (i, &input_pos) in input_positions.iter().enumerate() {
-            let weight = perceptron.weights[i];
-            let color = if weight >= 0.0 { GREEN } else { RED };
-            draw_line(
-                input_pos.x,
-                input_pos.y,
-                output_position.x,
-                output_position.y,
-                3.0,
-                color,
-            );
-
-            // Draw weight values
-            let text_pos = input_pos.lerp(output_position, 0.5);
-            draw_text(
-                &format!("{:.2}", weight),
-                text_pos.x - 20.0,
-                text_pos.y + 5.0,
-                20.0,
-                WHITE,
-            );
+        // Draw dataset points
+        for &(x, y) in &dataset {
+            let (screen_x, screen_y) = to_screen_coords(x, y);
+            draw_circle(screen_x, screen_y, 3.0, BLUE);
         }
 
-        // Draw input neurons
-        for (i, &pos) in input_positions.iter().enumerate() {
-            draw_circle(pos.x, pos.y, 20.0, BLUE);
-            draw_text(
-                &format!("Input {}", i + 1),
-                pos.x - 30.0,
-                pos.y - 30.0,
-                20.0,
-                WHITE,
-            );
+        // Draw true line
+        let (true_x1, true_y1) = to_screen_coords(-1.0, true_m * -1.0 + true_b);
+        let (true_x2, true_y2) = to_screen_coords(1.0, true_m * 1.0 + true_b);
+        draw_line(true_x1, true_y1, true_x2, true_y2, 2.0, GREEN);
+
+        // Draw perceptron line
+        let (perc_x1, perc_y1) = to_screen_coords(-1.0, perceptron.predict(-1.0));
+        let (perc_x2, perc_y2) = to_screen_coords(1.0, perceptron.predict(1.0));
+        draw_line(perc_x1, perc_y1, perc_x2, perc_y2, 2.0, RED);
+
+        // Training logic
+        let mut total_error = 0.0;
+        if training {
+            let previous_weights = perceptron.weights;
+            total_error = perceptron.train(&dataset);
+
+            // Check for convergence
+            let dw0 = (perceptron.weights[0] - previous_weights[0]).abs();
+            let dw1 = (perceptron.weights[1] - previous_weights[1]).abs();
+
+            if dw0 < 1e-5 && dw1 < 1e-5 {
+                training = false;
+                println!("Converged!");
+            }
         }
 
-        // Draw output neuron
-        let activation = perceptron.activate(&[1.0, 0.5, 0.7]); // Example inputs
-        let output_color = if activation >= 0.5 { GREEN } else { RED };
-        draw_circle(output_position.x, output_position.y, 25.0, output_color);
+        // Display total error on the screen
         draw_text(
-            "Output",
-            output_position.x - 40.0,
-            output_position.y - 40.0,
+            &format!("Total Error: {:.4}", total_error),
+            10.0,
             20.0,
-            WHITE,
-        );
-
-        // Draw bias
-        draw_circle(bias_position.x, bias_position.y, 15.0, YELLOW);
-        draw_text(
-            &format!("Bias: {:.2}", perceptron.bias),
-            bias_position.x - 40.0,
-            bias_position.y - 30.0,
             20.0,
-            WHITE,
+            BLACK,
         );
 
         next_frame().await;
     }
-}
-
-fn draw_neuron(pos: Vec2, color: Color) {
-    draw_circle(pos.x, pos.y, 20.0, color);
 }
