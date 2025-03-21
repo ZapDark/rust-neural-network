@@ -1,3 +1,3 @@
-use crate::constants::{NUMBER_OF_LAYERS, NUMBER_OF_NEURONS_PER_LAYER};
+use crate::constants::{LAYERS, NEURONS_PER_LAYER};
 
-pub type WeightsArray = [f32; NUMBER_OF_LAYERS * NUMBER_OF_NEURONS_PER_LAYER];
+pub type WeightsVector = [f32; LAYERS * NEURONS_PER_LAYER];
