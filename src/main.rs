@@ -8,8 +8,6 @@ struct Perceptron {
     learning_rate: f32,
 }
 
-//test
-
 impl Perceptron {
     fn new() -> Self {
         let mut rng = rand::thread_rng();
