@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use crate::{types::InputVector, utils::sign};
+use crate::{constants::LEARNING_RATE, types::InputVector, utils::sign};
 
 pub struct Perceptron {
     weights: Vec<f32>,
@@ -19,7 +19,7 @@ impl Perceptron {
 
         Perceptron {
             weights,
-            learning_rate: 0.01,
+            learning_rate: LEARNING_RATE,
         }
     }
 

@@ -4,7 +4,7 @@ pub fn sign(n: f32) -> f32 {
     if n >= 0.0 {
         return 1.0;
     }
-    return 0.0;
+    return -1.0;
 }
 
 pub fn map_range(value: f32, from_min: f32, from_max: f32, to_min: f32, to_max: f32) -> f32 {
