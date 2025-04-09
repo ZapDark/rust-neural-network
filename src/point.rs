@@ -12,6 +12,7 @@ use crate::{
 pub struct Point {
     pub x: f32,
     pub y: f32,
+    pub bias: f32,
     pub target: f32,
 }
 
@@ -24,15 +25,27 @@ impl Point {
 
         let line_y: f32 = f(x);
 
-        let target = if y > line_y { 1.0 } else { -1.0 };
+        let target: f32 = if y > line_y { 1.0 } else { -1.0 };
 
-        Point { x, y, target }
+        Point {
+            x,
+            y,
+            target,
+            bias: 1.0,
+        }
     }
 
     pub fn new_with_coordinates(x: f32, y: f32) -> Self {
-        let target = if x > y { 1.0 } else { -1.0 };
+        let line_y: f32 = f(x);
 
-        Point { x, y, target }
+        let target: f32 = if y > line_y { 1.0 } else { -1.0 };
+
+        Point {
+            x,
+            y,
+            target,
+            bias: 1.0,
+        }
     }
 
     pub fn pixel_x(&self) -> f32 {
