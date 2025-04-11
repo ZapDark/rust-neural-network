@@ -7,4 +7,4 @@ pub const LEARNING_RATE: f32 = 0.001;
 pub const NUMBER_OF_WEIGHTS: usize = 3;
 //f(x)
 pub const SLOPE: f32 = 0.3;
-pub const SHIFT: f32 = 0.0;
+pub const SHIFT: f32 = 0.5;

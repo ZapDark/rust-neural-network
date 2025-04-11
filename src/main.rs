@@ -8,7 +8,7 @@ use rust_neural_network::{
     perceptron::Perceptron,
     point::Point,
     types::InputVector,
-    utils::f,
+    utils::{draw_cartesian_grid, f},
 };
 
 fn window_conf() -> Conf {
@@ -38,13 +38,18 @@ async fn main() {
         // Clear the screen with a color
         clear_background(WHITE);
 
+        // Draw the Cartesian grid
+        let grid_color = Color::new(0.9, 0.9, 0.9, 1.0);
+        let step = 20.0;
+        draw_cartesian_grid(step, grid_color);
+
         // Draw a line
         draw_line(
             target_point_1.pixel_x(),
             target_point_1.pixel_y(),
             target_point_2.pixel_x(),
             target_point_2.pixel_y(),
-            1.0,
+            1.5,
             BLACK,
         );
 
@@ -57,7 +62,7 @@ async fn main() {
             guess_point_1.pixel_y(),
             guess_point_2.pixel_x(),
             guess_point_2.pixel_y(),
-            1.0,
+            1.5,
             RED,
         );
 
@@ -98,9 +103,8 @@ async fn main() {
 
         if all_correct {
             for i in 0..perceptron.weights.len() {
-                println!("Initial Weights: {:?}", perceptron.weights[i]);
+                println!("Final Weights: {:?}", perceptron.weights[i]);
             }
-            break;
         }
 
         // Wait for the next frame
