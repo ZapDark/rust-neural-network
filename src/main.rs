@@ -61,6 +61,8 @@ async fn main() {
             RED,
         );
 
+        let mut all_correct = true;
+
         for point in &points {
             //Draw dataset
             point.show();
@@ -75,6 +77,8 @@ async fn main() {
 
             if guess == point.target {
                 color = GREEN;
+            } else {
+                all_correct = false;
             }
 
             draw_circle(point.pixel_x(), point.pixel_y(), 2.0, color);
@@ -90,6 +94,13 @@ async fn main() {
 
         if training_index == points.len() {
             training_index = 0;
+        }
+
+        if all_correct {
+            for i in 0..perceptron.weights.len() {
+                println!("Initial Weights: {:?}", perceptron.weights[i]);
+            }
+            break;
         }
 
         // Wait for the next frame

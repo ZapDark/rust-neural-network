@@ -3,7 +3,7 @@ use rand::Rng;
 use crate::{constants::LEARNING_RATE, types::InputVector, utils::sign};
 
 pub struct Perceptron {
-    weights: Vec<f32>,
+    pub weights: Vec<f32>,
     learning_rate: f32,
 }
 
